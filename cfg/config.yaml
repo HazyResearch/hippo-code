@@ -1,0 +1,26 @@
+defaults:
+  # - model: lstm
+  - dataset: mnist
+  - runner: ray
+model:
+  cell: legs
+  cell_args:
+    hidden_size: 256
+  dropout: 0.0
+train:
+  optimizer: adam
+  batch_size: 100
+  epochs: 50
+  lr: 1e-3
+  gradient_clip_val: 0.0
+  wd: 0.0
+  limit_train_batches: 1.0  # train on full dataset, can be used to toggle quick run
+  verbose: True  # Whether to print out train/val results after each epoch
+dataset:
+  num_workers: 4
+wandb:
+  project: ops_memory
+  group: ''
+  job_type: training
+smoke_test: False
+seed: [_sample_uniform, 0, 65536]

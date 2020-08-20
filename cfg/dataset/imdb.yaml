@@ -1,0 +1,10 @@
+dataset:
+  name: imdb
+  vocab_size: 25000
+  max_length: 2789  # Default is not to truncate sentences
+train:
+  batch_size: 64
+  epochs: 10
+model:
+  embed_args:
+    embed_dim: 100

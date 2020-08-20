@@ -1,0 +1,11 @@
+pytorch-lightning>=0.7.6
+torchtext
+numpy
+scipy
+sklearn
+sktime
+matplotlib
+tqdm
+hydra-core==1.0.0rc4
+omegaconf
+munch
