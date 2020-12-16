@@ -1,4 +1,5 @@
 runner:
   name: pl
+  ntrials: 1
 # Currently we don't set seed when run with pytorch-lightning
 seed:

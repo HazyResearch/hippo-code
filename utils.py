@@ -4,6 +4,12 @@ from omegaconf.dictconfig import DictConfig
 from munch import Munch
 
 
+def remove_postfix(text, postfix):
+    if text.endswith(postfix):
+        return text[:-len(postfix)]
+    return text
+
+
 # pytorch-lightning returns pytorch 0-dim tensor instead of python scalar
 def to_scalar(x):
     return x.item() if isinstance(x, torch.Tensor) else x
