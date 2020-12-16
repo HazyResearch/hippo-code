@@ -30,6 +30,7 @@ def pl_train(cfg, pl_model_class):
         limit_train_batches=cfg.train.limit_train_batches,
         track_grad_norm=2,
         **profiler_args,
+        logger=False,
     )
 
     trainer.fit(model)
