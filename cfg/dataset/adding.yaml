@@ -1,5 +1,5 @@
-dataset:
-  name: adding
-  L: 1000
-  samples: 55000
-  test_samples: 5000
+# @package _group_
+name: adding
+L: 1000
+samples: 55000
+test_samples: 5000

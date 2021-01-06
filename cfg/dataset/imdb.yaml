@@ -1,3 +1,4 @@
+# @package _global_
 dataset:
   name: imdb
   vocab_size: 25000

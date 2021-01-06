@@ -1,3 +1,3 @@
-dataset:
-  name: mnist
-  permute: False
+# @package _group_
+name: mnist
+permute: False

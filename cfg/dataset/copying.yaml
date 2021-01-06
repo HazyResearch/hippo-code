@@ -1,9 +1,9 @@
+# @package _group_
 # Copying task
-dataset:
-  name: copying
-  L: 100 # length
-  M: 10  # number of tokens to memorize
-  A: 10  # alphabet size
-  variable: False # Randomly distribute memorization tokens throughout sequence instead of frontloading them
-  samples: 55000
-  test_samples: 5000
+name: copying
+L: 100 # length
+M: 10  # number of tokens to memorize
+A: 10  # alphabet size
+variable: False # Randomly distribute memorization tokens throughout sequence instead of frontloading them
+samples: 55000
+test_samples: 5000
