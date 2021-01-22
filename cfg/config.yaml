@@ -2,7 +2,7 @@
 defaults:
   # - model: lstm
   - dataset: mnist
-  - runner: ray
+  - runner: pl
 model:
   cell: legs
   cell_args:
@@ -24,4 +24,4 @@ wandb:
   group: ''
   job_type: training
 smoke_test: False
-seed: [_sample_uniform, 0, 65536]
+seed:
