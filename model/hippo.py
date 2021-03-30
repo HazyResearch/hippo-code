@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 from scipy import signal
 from scipy import linalg as la
+from scipy import special as ss
 
 from model import unroll
 from model.op import transition
@@ -33,6 +34,10 @@ class HiPPO(nn.Module):
         self.register_buffer('A', torch.Tensor(A)) # (N, N)
         self.register_buffer('B', torch.Tensor(B)) # (N,)
 
+        # vals = np.linspace(0.0, 1.0, 1./dt)
+        vals = np.arange(0.0, 1.0, dt)
+        self.eval_matrix = torch.Tensor(ss.eval_legendre(np.arange(N)[:, None], 1 - 2 * vals).T)
+
     def forward(self, inputs):
         """
         inputs : (length, ...)
@@ -48,6 +53,9 @@ class HiPPO(nn.Module):
             c = F.linear(c, self.A) + self.B * f
             cs.append(c)
         return torch.stack(cs, dim=0)
+
+    def reconstruct(self, c):
+        return (self.eval_matrix @ c.unsqueeze(-1)).squeeze(-1)
 
 
 
@@ -82,6 +90,9 @@ class HiPPO_LegS(nn.Module):
         self.B_stacked = torch.Tensor(B_stacked) # (max_length, N)
         # print("B_stacked shape", B_stacked.shape)
 
+        vals = np.linspace(0.0, 1.0, max_length)
+        self.eval_matrix = torch.Tensor((B[:, None] * ss.eval_legendre(np.arange(N)[:, None], 2 * vals - 1)).T)
+
     def forward(self, inputs, fast=False):
         """
         inputs : (length, ...)
@@ -101,6 +112,10 @@ class HiPPO_LegS(nn.Module):
             result = unroll.variable_unroll_matrix_sequential(self.A_stacked[:L], u)
         return result
 
+    def reconstruct(self, c):
+        a = self.eval_matrix @ c.unsqueeze(-1)
+        return a.squeeze(-1)
+
 if __name__ == '__main__':
     N = 100
     L = 200
@@ -110,9 +125,11 @@ if __name__ == '__main__':
     x = torch.randn(L, 1)
 
     y = hippo(x)
+    print(y.shape)
+    print(hippo.reconstruct(y).shape)
     # print(y.shape)
     y = hippo_legs(x)
     # print(y.shape)
     z = hippo_legs(x, fast=True)
-    # print(z.shape)
+    print(hippo_legs.reconstruct(z).shape)
     # print(y-z)
