@@ -299,6 +299,7 @@ def variable_unroll_general_sequential(A, u, s, op, variable=True):
     outputs = []
     for (A_, u_) in zip(torch.unbind(A, dim=0), torch.unbind(u, dim=0)):
         s = op(A_, s)
+        s = s + u_
         outputs.append(s)
 
     output = torch.stack(outputs, dim=0)
