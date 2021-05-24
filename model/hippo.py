@@ -1,10 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.utils.data as data
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import signal
 from scipy import linalg as la
 from scipy import special as ss
+import nengo
 
 from model import unroll
 from model.op import transition
@@ -15,7 +18,7 @@ from model.op import transition
 # zoh_aliases       = ['zoh']
 
 
-class HiPPO(nn.Module):
+class HiPPO_LegT(nn.Module):
     def __init__(self, N, dt=1.0, measure='legt', discretization='bilinear'):
         """
         N: the order of the HiPPO projection
@@ -116,20 +119,77 @@ class HiPPO_LegS(nn.Module):
         a = self.eval_matrix @ c.unsqueeze(-1)
         return a.squeeze(-1)
 
-if __name__ == '__main__':
-    N = 100
-    L = 200
-    hippo = HiPPO(N)
-    hippo_legs = HiPPO_LegS(N)
+
+class FunctionApprox(data.TensorDataset):
+
+    def __init__(self, length, dt, nbatches, freq=10.0, seed=0):
+        rng = np.random.RandomState(seed=seed)
+        process = nengo.processes.WhiteSignal(length * dt, high=freq, y0=0)
+        X = np.empty((nbatches, length, 1))
+        for i in range(nbatches):
+            X[i, :] = process.run_steps(length, dt=dt, rng=rng)
+            # X[i, :] /= np.max(np.abs(X[i, :]))
+        X = torch.Tensor(X)
+        super().__init__(X, X)
+
+
+def test():
+    N = 256
+    L = 128
+    hippo = HiPPO_LegT(N, dt=1./L)
 
     x = torch.randn(L, 1)
 
     y = hippo(x)
     print(y.shape)
-    print(hippo.reconstruct(y).shape)
+    z = hippo.reconstruct(y)
+    print(z.shape)
+
+    # mse = torch.mean((z[-1,0,:L].flip(-1) - x.squeeze(-1))**2)
+    mse = torch.mean((z[-1,0,:L] - x.squeeze(-1))**2)
+    print(mse)
+
     # print(y.shape)
+    hippo_legs = HiPPO_LegS(N, max_length=L)
     y = hippo_legs(x)
     # print(y.shape)
     z = hippo_legs(x, fast=True)
     print(hippo_legs.reconstruct(z).shape)
     # print(y-z)
+
+
+def plot():
+    T = 10000
+    dt = 1e-3
+    N = 256
+    nbatches = 10
+    train = FunctionApprox(T, dt, nbatches, freq=1.0, seed=0)
+    test = FunctionApprox(T, dt, nbatches, freq=1.0, seed=1)
+    test_loader = torch.utils.data.DataLoader(test, batch_size=1, shuffle=False)
+    it = iter(test_loader)
+    f, _ = next(it)
+    f, _ = next(it)
+    f = f.squeeze(0).squeeze(-1)
+
+    legt = HiPPO_LegT(N, 1./T, measure='lmu')
+    f_legt = legt.reconstruct(legt(f))[-1]
+    legs = HiPPO_LegS(N, T)
+    f_legs = legs.reconstruct(legs(f))[-1]
+    print(F.mse_loss(f, f_legt))
+    print(F.mse_loss(f, f_legs))
+
+    vals = np.linspace(0.0, 1.0, T)
+    plt.figure(figsize=(6, 2))
+    plt.plot(vals, f+0.1, 'k', linewidth=1.0)
+    plt.plot(vals[:T//1], f_legt[:T//1])
+    plt.plot(vals[:T//1], f_legs[:T//1])
+    plt.xlabel('Time (normalized)', labelpad=-10)
+    plt.xticks([0, 1])
+    plt.legend(['f', 'legt', 'legs'])
+    plt.savefig(f'function_approx_whitenoise.pdf', bbox_inches='tight')
+    # plt.show()
+    plt.close()
+
+
+if __name__ == '__main__':
+    plot()
