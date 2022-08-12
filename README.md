@@ -1,3 +1,7 @@
+**This repository has been deprecated. Updated HiPPO code and experiments can be found at https://github.com/HazyResearch/state-spaces**
+
+
+
 # HiPPO
 ![HiPPO Framework](assets/hippo.png "HiPPO Framework")
 > **HiPPO: Recurrent Memory with Optimal Polynomial Projections**\
